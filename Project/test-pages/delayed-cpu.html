@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Delayed CPU Spike - CryptoShield Test</title>
+    <link rel="stylesheet" href="test-page.css">
+</head>
+
+<body class="quiet-test">
+    <main class="page">
+        <section class="panel">
+            <a class="close-link" href="index.html" aria-label="Back to home">x</a>
+            <p class="eyebrow">Simulation</p>
+            <h1>Delayed CPU spike</h1>
+            <p>This page waits 12 seconds, then runs short CPU bursts. It does not mine anything or contact the network.
+            </p>
+            <div id="status" class="status">Waiting for delayed activity...</div>
+            <button id="stop-btn" type="button">Stop Simulation</button>
+        </section>
+        <footer class="site-footer">CryptoShield | Malware Analysis Project | Designed and Developed by Areeba Adnan</footer>
+    </main>
+
+    <script>
+        const statusBox = document.getElementById("status");
+        const stopButton = document.getElementById("stop-btn");
+        let stopped = false;
+        let burstTimer = null;
+
+        function cpuBurst() {
+            if (stopped) {
+                return;
+            }
+
+            const endAt = performance.now() + 900;
+            let value = 0;
+
+            while (performance.now() < endAt) {
+                value += Math.sqrt(Math.random() * 1000000);
+            }
+
+            statusBox.textContent = `Controlled CPU burst running. Sample: ${Math.round(value)}`;
+            burstTimer = setTimeout(cpuBurst, 250);
+        }
+
+        setTimeout(() => {
+            if (!stopped) {
+                statusBox.className = "status warn";
+                cpuBurst();
+            }
+        }, 12000);
+
+        stopButton.addEventListener("click", () => {
+            stopped = true;
+            clearTimeout(burstTimer);
+            statusBox.className = "status safe";
+            statusBox.textContent = "Simulation stopped.";
+        });
+    </script>
+</body>
+
+</html>

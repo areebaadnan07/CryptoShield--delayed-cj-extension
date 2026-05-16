@@ -1,0 +1,1281 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CryptoShield Test Lab</title>
+    <style>
+        :root {
+            --ink: #f8fbff;
+            --muted: #b7c3d4;
+            --line: rgba(255, 255, 255, 0.16);
+            --panel: rgba(17, 24, 39, 0.68);
+            --soft: #111827;
+            --safe: #15956b;
+            --warn: #f59e0b;
+            --danger: #ff5a3d;
+            --accent: #38bdf8;
+            --shadow: 0 28px 80px rgba(0, 0, 0, 0.38);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            color: var(--ink);
+            font: 15px/1.5 "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #050815;
+            overflow-x: hidden;
+        }
+
+        #crypto-bg {
+            position: fixed;
+            inset: 0;
+            z-index: -3;
+            width: 100%;
+            height: 100%;
+            background: #050815;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -2;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 18% 32%, rgba(245, 158, 11, 0.28), transparent 24%),
+                radial-gradient(circle at 82% 24%, rgba(56, 189, 248, 0.18), transparent 28%),
+                linear-gradient(90deg, rgba(5, 8, 21, 0.34), rgba(5, 8, 21, 0.12) 48%, rgba(5, 8, 21, 0.78));
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            background:
+                linear-gradient(180deg, rgba(5, 8, 21, 0.06), rgba(5, 8, 21, 0.55)),
+                repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 90px);
+        }
+
+        a,
+        button {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        button {
+            font: inherit;
+        }
+
+        .shell {
+            width: min(1120px, calc(100% - 32px));
+            margin: 0 auto;
+            padding: 24px 0 38px;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 34px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .mark {
+            display: grid;
+            width: 42px;
+            height: 42px;
+            place-items: center;
+            color: #ffffff;
+            font-size: 21px;
+            font-weight: 900;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #f59e0b, #ff5a3d);
+            box-shadow: 0 14px 34px rgba(255, 90, 61, 0.32);
+        }
+
+        .brand strong {
+            display: block;
+            font-size: 18px;
+            line-height: 1.1;
+        }
+
+        .brand span,
+        .nav-note {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+            gap: 28px;
+            align-items: center;
+            margin-bottom: 26px;
+        }
+
+        .hero-copy {
+            padding: 18px 0;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 0 14px;
+            padding: 7px 10px;
+            color: #ffdb9b;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            border: 1px solid rgba(245, 158, 11, 0.34);
+            border-radius: 999px;
+            background: rgba(245, 158, 11, 0.12);
+            backdrop-filter: blur(16px);
+        }
+
+        .eyebrow::before {
+            content: "";
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--warn);
+            box-shadow: 0 0 18px rgba(245, 158, 11, 0.8);
+        }
+
+        h1 {
+            max-width: 700px;
+            margin: 0 0 14px;
+            font-size: clamp(36px, 7vw, 68px);
+            line-height: 0.98;
+            letter-spacing: 0;
+        }
+
+        .lead {
+            max-width: 620px;
+            margin: 0 0 22px;
+            color: var(--muted);
+            font-size: 17px;
+        }
+
+        .hero-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            padding: 0 16px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .button.primary {
+            color: #ffffff;
+            background: linear-gradient(135deg, #f59e0b, #ff5a3d);
+            box-shadow: 0 16px 34px rgba(255, 90, 61, 0.30);
+        }
+
+        .button.secondary {
+            color: #f8fbff;
+            border-color: var(--line);
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+        }
+
+        .monitor {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            overflow: hidden;
+            background: rgba(12, 18, 32, 0.72);
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(20px);
+        }
+
+        .monitor-top {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            height: 42px;
+            padding: 0 14px;
+            border-bottom: 1px solid var(--line);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--danger);
+        }
+
+        .dot:nth-child(2) {
+            background: var(--warn);
+        }
+
+        .dot:nth-child(3) {
+            background: var(--safe);
+        }
+
+        .monitor-body {
+            padding: 18px;
+        }
+
+        .meter-row {
+            display: grid;
+            grid-template-columns: 74px 1fr 46px;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 14px;
+            color: #dbeafe;
+            font-weight: 750;
+        }
+
+        .meter {
+            height: 10px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .fill {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            background: var(--safe);
+        }
+
+        .fill.warn {
+            background: var(--warn);
+        }
+
+        .fill.danger {
+            background: var(--danger);
+        }
+
+        .log {
+            display: grid;
+            gap: 8px;
+            margin-top: 18px;
+        }
+
+        .log-line {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            color: #d7e2f1;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .pill {
+            flex: 0 0 auto;
+            padding: 4px 8px;
+            color: #a7f3d0;
+            font-size: 11px;
+            font-weight: 800;
+            border-radius: 999px;
+            background: rgba(21, 149, 107, 0.18);
+        }
+
+        .pill.warn {
+            color: #fed7aa;
+            background: rgba(245, 158, 11, 0.18);
+        }
+
+        .pill.danger {
+            color: #fecaca;
+            background: rgba(255, 90, 61, 0.20);
+        }
+
+        .section-head {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 16px;
+            margin: 24px 0 14px;
+        }
+
+        .section-head h2 {
+            margin: 0;
+            font-size: 24px;
+            letter-spacing: 0;
+        }
+
+        .section-head p {
+            max-width: 440px;
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+        }
+
+        .card {
+            position: relative;
+            display: grid;
+            width: 100%;
+            text-align: left;
+            min-height: 218px;
+            padding: 18px;
+            color: inherit;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: rgba(12, 18, 32, 0.62);
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22);
+            backdrop-filter: blur(18px);
+            cursor: pointer;
+            transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+        }
+
+        .card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(245, 158, 11, 0.48);
+            box-shadow: 0 24px 54px rgba(0, 0, 0, 0.32);
+        }
+
+        .card-number {
+            color: #ffdb9b;
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .card h3 {
+            margin: 12px 0 8px;
+            font-size: 20px;
+            letter-spacing: 0;
+        }
+
+        .card p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            align-self: end;
+            margin-top: 22px;
+            padding-top: 14px;
+            border-top: 1px solid var(--line);
+            color: #dbeafe;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .arrow {
+            display: grid;
+            width: 30px;
+            height: 30px;
+            place-items: center;
+            border-radius: 50%;
+            color: #ffffff;
+            background: linear-gradient(135deg, #f59e0b, #ff5a3d);
+        }
+
+        .guide {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 18px;
+            align-items: center;
+            margin-top: 18px;
+            padding: 18px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: rgba(12, 18, 32, 0.62);
+            backdrop-filter: blur(18px);
+        }
+
+        code {
+            display: block;
+            overflow-x: auto;
+            padding: 12px;
+            color: #d6e2ff;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.44);
+        }
+
+        .site-footer {
+            margin-top: 24px;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 750;
+            text-align: center;
+        }
+
+        .test-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            display: grid;
+            place-items: center;
+            padding: 22px;
+            background: rgba(2, 6, 23, 0.28);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 220ms ease;
+        }
+
+        .test-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .test-panel {
+            position: fixed;
+            left: var(--card-left, 50%);
+            top: var(--card-top, 50%);
+            width: var(--card-width, 320px);
+            min-height: var(--card-height, 220px);
+            padding: 22px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 8px;
+            background:
+                linear-gradient(145deg, rgba(17, 24, 39, 0.92), rgba(7, 12, 24, 0.86)),
+                rgba(12, 18, 32, 0.86);
+            box-shadow: 0 34px 90px rgba(0, 0, 0, 0.46);
+            backdrop-filter: blur(24px);
+            transform-origin: top left;
+            transition:
+                left 360ms cubic-bezier(.2, .9, .22, 1),
+                top 360ms cubic-bezier(.2, .9, .22, 1),
+                width 360ms cubic-bezier(.2, .9, .22, 1),
+                min-height 360ms cubic-bezier(.2, .9, .22, 1);
+        }
+
+        .test-overlay.open .test-panel {
+            left: max(18px, calc(50vw - min(720px, calc(100vw - 36px)) / 2));
+            top: max(18px, calc(50vh - min(560px, calc(100vh - 36px)) / 2));
+            width: min(720px, calc(100vw - 36px));
+            min-height: min(560px, calc(100vh - 36px));
+        }
+
+        .test-panel::before {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at 18% 22%, rgba(245, 158, 11, 0.24), transparent 28%),
+                radial-gradient(circle at 82% 16%, rgba(56, 189, 248, 0.18), transparent 26%);
+        }
+
+        .test-panel > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .test-panel-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+
+        .test-kicker {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0 0 10px;
+            color: #ffdb9b;
+            font-size: 12px;
+            font-weight: 900;
+            text-transform: uppercase;
+        }
+
+        .test-kicker::before {
+            content: "";
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            background: var(--warn);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.9);
+        }
+
+        .test-title {
+            max-width: 540px;
+            margin: 0;
+            font-size: clamp(34px, 7vw, 64px);
+            line-height: 0.98;
+            letter-spacing: 0;
+        }
+
+        .close-test {
+            display: grid;
+            flex: 0 0 auto;
+            width: 42px;
+            height: 42px;
+            place-items: center;
+            border: 1px solid var(--line);
+            border-radius: 50%;
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.08);
+            cursor: pointer;
+        }
+
+        .test-body {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+            gap: 18px;
+            align-items: stretch;
+        }
+
+        .test-copy,
+        .test-console {
+            padding: 18px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .test-copy p {
+            margin: 0 0 18px;
+            color: var(--muted);
+            font-size: 16px;
+        }
+
+        .status-box {
+            position: relative;
+            min-height: 58px;
+            padding: 14px 14px 14px 42px;
+            border: 1px solid rgba(56, 189, 248, 0.24);
+            border-radius: 8px;
+            color: #dbeafe;
+            font-weight: 800;
+            background: rgba(56, 189, 248, 0.08);
+        }
+
+        .status-box::before {
+            content: "";
+            position: absolute;
+            top: 20px;
+            left: 17px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+
+        .status-box.safe {
+            color: #a7f3d0;
+            border-color: rgba(21, 149, 107, 0.36);
+            background: rgba(21, 149, 107, 0.10);
+        }
+
+        .status-box.safe::before {
+            background: var(--safe);
+        }
+
+        .status-box.warn {
+            color: #fed7aa;
+            border-color: rgba(245, 158, 11, 0.38);
+            background: rgba(245, 158, 11, 0.11);
+        }
+
+        .status-box.warn::before {
+            background: var(--warn);
+        }
+
+        .test-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .test-action {
+            min-height: 42px;
+            padding: 0 15px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            color: #ffffff;
+            font-weight: 850;
+            cursor: pointer;
+            background: linear-gradient(135deg, #f59e0b, #ff5a3d);
+        }
+
+        .test-action.secondary {
+            border-color: var(--line);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .test-console {
+            display: grid;
+            align-content: start;
+            gap: 10px;
+        }
+
+        .console-line {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--line);
+            color: #d7e2f1;
+            font-size: 13px;
+            font-weight: 750;
+        }
+
+        .console-line:last-child {
+            border-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .console-value {
+            color: #ffdb9b;
+            text-align: right;
+        }
+
+        @media (max-width: 900px) {
+            .hero,
+            .guide,
+            .test-body {
+                grid-template-columns: 1fr;
+            }
+
+            .grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 620px) {
+            .nav,
+            .section-head {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .meter-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .card,
+            .test-overlay,
+            .test-panel {
+                transition: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="crypto-bg" aria-hidden="true"></canvas>
+    <main class="shell">
+        <nav class="nav" aria-label="CryptoShield test navigation">
+            <a class="brand" href="index.html">
+                <span class="mark" aria-hidden="true">C</span>
+                <span>
+                    <strong>CryptoShield</strong>
+                    <span>Controlled mining simulation lab</span>
+                </span>
+            </a>
+            <span class="nav-note">Run locally on localhost:8080</span>
+        </nav>
+
+        <section class="hero">
+            <div class="hero-copy">
+                <p class="eyebrow">Safe research environment</p>
+                <h1>Test delayed cryptojacking detection with controlled pages.</h1>
+                <p class="lead">Open each simulation, launch the extension popup, and watch CPU history, worker signals, WebSocket signals, flags, and the block button respond.</p>
+                <div class="hero-actions">
+                    <a class="button primary" href="delayed-miner.html">Start Delay-CJ Test</a>
+                    <a class="button secondary" href="clean-page.html">Open Clean Page</a>
+                </div>
+            </div>
+
+            <aside class="monitor" aria-label="CryptoShield monitor preview">
+                <div class="monitor-top">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                </div>
+                <div class="monitor-body">
+                    <div class="meter-row">
+                        <span>Clean</span>
+                        <span class="meter"><span class="fill" style="width: 12%"></span></span>
+                        <span>SAFE</span>
+                    </div>
+                    <div class="meter-row">
+                        <span>Instant</span>
+                        <span class="meter"><span class="fill danger" style="width: 88%"></span></span>
+                        <span>THREAT</span>
+                    </div>
+                    <div class="meter-row">
+                        <span>Delayed</span>
+                        <span class="meter"><span class="fill warn" style="width: 62%"></span></span>
+                        <span>WATCH</span>
+                    </div>
+                    <div class="log">
+                        <div class="log-line">
+                            <span>Worker constructor hook</span>
+                            <span class="pill warn">Signal</span>
+                        </div>
+                        <div class="log-line">
+                            <span>15% CPU threshold</span>
+                            <span class="pill">Ready</span>
+                        </div>
+                        <div class="log-line">
+                            <span>Suspicious background tab</span>
+                            <span class="pill danger">Block</span>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </section>
+
+        <section class="section-head">
+            <div>
+                <h2>Test Scenarios</h2>
+            </div>
+            <p>These pages do not mine cryptocurrency. They only generate controlled browser behavior for your extension to classify.</p>
+        </section>
+
+        <section class="grid" aria-label="Available CryptoShield test pages">
+            <a class="card" href="clean-page.html">
+                <span class="card-number">Test 01</span>
+                <div>
+                    <h3>Clean Page</h3>
+                    <p>Simple HTML with no CPU load, no worker, and no network trigger. It should remain safe.</p>
+                </div>
+                <span class="card-footer">Expected: SAFE <span class="arrow">></span></span>
+            </a>
+
+            <a class="card" href="instant-miner.html">
+                <span class="card-number">Test 02</span>
+                <div>
+                    <h3>Instant Miner</h3>
+                    <p>Starts the worker CPU loop immediately so CryptoShield can detect a fast threat.</p>
+                </div>
+                <span class="card-footer">Expected: THREAT <span class="arrow">></span></span>
+            </a>
+
+            <a class="card" href="delayed-miner.html">
+                <span class="card-number">Test 03</span>
+                <div>
+                    <h3>Delayed Miner</h3>
+                    <p>Waits five seconds before starting the worker loop. This is the key Delay-CJ proof.</p>
+                </div>
+                <span class="card-footer">Expected: DELAY-CJ <span class="arrow">></span></span>
+            </a>
+
+            <a class="card" href="websocket-simulation.html">
+                <span class="card-number">Test 04</span>
+                <div>
+                    <h3>WebSocket Signal</h3>
+                    <p>Attempts a local mining-port URL so the injected WebSocket hook can fire safely.</p>
+                </div>
+                <span class="card-footer">Expected: SIGNAL <span class="arrow">></span></span>
+            </a>
+
+            <a class="card" href="manual-miner-simulation.html">
+                <span class="card-number">Test 05</span>
+                <div>
+                    <h3>Manual WebSocket Signal</h3>
+                    <p>Starts worker WebSocket traffic only when you click start, so you can observe the signal manually.</p>
+                </div>
+                <span class="card-footer">Expected: MANUAL SIGNAL <span class="arrow">></span></span>
+            </a>
+
+            <a class="card" href="realistic-miner-simulation.html">
+                <span class="card-number">Test 06</span>
+                <div>
+                    <h3>Realistic Delay-CJ</h3>
+                    <p>Uses a video play trigger, four high-load workers, digest signals, and localhost-only traffic.</p>
+                </div>
+                <span class="card-footer">Expected: HIGH REALISM <span class="arrow">></span></span>
+            </a>
+        </section>
+
+        <section class="guide" aria-label="Run command">
+            <div>
+                <h2>Run The Lab</h2>
+                <p class="lead">Start a local server from the test-pages folder, then open this dashboard in Chrome.</p>
+            </div>
+            <code>python -m http.server 8080</code>
+        </section>
+        <footer class="site-footer">CryptoShield | Malware Analysis Project | Designed and Developed by Areeba Adnan</footer>
+    </main>
+    <div class="test-overlay" id="test-overlay" aria-hidden="true">
+        <section class="test-panel" role="dialog" aria-modal="true" aria-labelledby="test-title">
+            <div class="test-panel-head">
+                <div>
+                    <p class="test-kicker" id="test-kicker">Test</p>
+                    <h2 class="test-title" id="test-title">CryptoShield Test</h2>
+                </div>
+                <button class="close-test" id="close-test" type="button" aria-label="Close test">x</button>
+            </div>
+            <div class="test-body">
+                <div class="test-copy">
+                    <p id="test-description">Choose a test to run inside this panel.</p>
+                    <div class="status-box" id="test-status">Ready.</div>
+                    <div class="test-actions" id="test-actions"></div>
+                </div>
+                <aside class="test-console" aria-label="Test telemetry">
+                    <div class="console-line">
+                        <span>Simulation</span>
+                        <span class="console-value" id="console-mode">Idle</span>
+                    </div>
+                    <div class="console-line">
+                        <span>Worker</span>
+                        <span class="console-value" id="console-worker">None</span>
+                    </div>
+                    <div class="console-line">
+                        <span>Delay</span>
+                        <span class="console-value" id="console-delay">0s</span>
+                    </div>
+                    <div class="console-line">
+                        <span>Expected</span>
+                        <span class="console-value" id="console-expected">SAFE</span>
+                    </div>
+                </aside>
+            </div>
+        </section>
+    </div>
+    <script>
+        const canvas = document.getElementById("crypto-bg");
+        const context = canvas.getContext("2d");
+        const hashes = "abcdef0123456789";
+        const nodes = [];
+        const streams = [];
+        const blocks = [];
+        const testOverlay = document.getElementById("test-overlay");
+        const testPanel = testOverlay.querySelector(".test-panel");
+        const closeTestButton = document.getElementById("close-test");
+        const testKicker = document.getElementById("test-kicker");
+        const testTitle = document.getElementById("test-title");
+        const testDescription = document.getElementById("test-description");
+        const testStatus = document.getElementById("test-status");
+        const testActions = document.getElementById("test-actions");
+        const consoleMode = document.getElementById("console-mode");
+        const consoleWorker = document.getElementById("console-worker");
+        const consoleDelay = document.getElementById("console-delay");
+        const consoleExpected = document.getElementById("console-expected");
+        let width = 0;
+        let height = 0;
+        let time = 0;
+        let activeWorker = null;
+        let activeTimer = null;
+        let activeSocket = null;
+
+        const tests = {
+            clean: {
+                kicker: "Test 01",
+                title: "Clean page",
+                description: "This inline page state has no worker, no CPU loop, and no suspicious WebSocket. CryptoShield should keep it marked safe.",
+                status: "No CPU load. Expected result: SAFE.",
+                statusType: "safe",
+                mode: "Clean",
+                worker: "None",
+                delay: "0s",
+                expected: "SAFE"
+            },
+            instant: {
+                kicker: "Test 02",
+                title: "Instant miner simulation",
+                description: "This starts a controlled worker CPU loop immediately inside the home page. It should become a threat quickly.",
+                status: "Starting worker immediately...",
+                statusType: "warn",
+                mode: "Immediate CPU",
+                worker: "Starting",
+                delay: "0s",
+                expected: "THREAT"
+            },
+            delayed: {
+                kicker: "Test 03",
+                title: "Delayed miner simulation",
+                description: "This waits five seconds before starting the worker loop, or you can trigger it manually. This is the key Delay-CJ proof.",
+                status: "Waiting 5 seconds before mining simulation...",
+                statusType: "",
+                mode: "Delayed CPU",
+                worker: "Waiting",
+                delay: "5s",
+                expected: "DELAY-CJ"
+            },
+            websocket: {
+                kicker: "Test 04",
+                title: "WebSocket signal simulation",
+                description: "This attempts a local WebSocket URL on a common mining port so the injected WebSocket hook can fire safely.",
+                status: "Waiting 2 seconds before creating WebSocket...",
+                statusType: "",
+                mode: "Runtime signal",
+                worker: "None",
+                delay: "2s",
+                expected: "SIGNAL"
+            }
+        };
+
+        function random(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        function setStatus(text, type = "") {
+            testStatus.textContent = text;
+            testStatus.className = `status-box${type ? ` ${type}` : ""}`;
+        }
+
+        function resetSimulation() {
+            clearTimeout(activeTimer);
+            activeTimer = null;
+
+            if (activeWorker) {
+                activeWorker.postMessage("stop");
+                activeWorker.terminate();
+                activeWorker = null;
+            }
+
+            if (activeSocket) {
+                activeSocket.close();
+                activeSocket = null;
+            }
+
+            testActions.replaceChildren();
+        }
+
+        function makeAction(label, handler, secondary = false) {
+            const action = document.createElement("button");
+            action.type = "button";
+            action.className = `test-action${secondary ? " secondary" : ""}`;
+            action.textContent = label;
+            action.addEventListener("click", handler);
+            testActions.appendChild(action);
+        }
+
+        function startWorker(label) {
+            if (activeWorker) {
+                return;
+            }
+
+            activeWorker = new Worker("miner-simulation-worker.js");
+            consoleWorker.textContent = "Running";
+            setStatus(`${label} running. Waiting for worker samples...`, "warn");
+
+            activeWorker.addEventListener("message", (event) => {
+                setStatus(`${label} running. Iterations: ${event.data.iterations}`, "warn");
+            });
+        }
+
+        function stopWorker() {
+            if (!activeWorker) {
+                setStatus("No active worker to stop.", "safe");
+                return;
+            }
+
+            activeWorker.postMessage("stop");
+            activeWorker.terminate();
+            activeWorker = null;
+            consoleWorker.textContent = "Stopped";
+            setStatus("Mining simulation stopped.", "safe");
+        }
+
+        function triggerWebSocket() {
+            try {
+                activeSocket = new WebSocket("ws://127.0.0.1:3333/cryptonight-test");
+                setStatus("Suspicious WebSocket constructor called.", "warn");
+                activeSocket.addEventListener("error", () => {
+                    setStatus("Local WebSocket failed as expected. Detection signal was still generated.", "warn");
+                });
+            } catch (error) {
+                setStatus("WebSocket was blocked by the browser, but the simulation attempted it.", "warn");
+            }
+        }
+
+        function runTest(type) {
+            resetSimulation();
+
+            const config = tests[type];
+            testKicker.textContent = config.kicker;
+            testTitle.textContent = config.title;
+            testDescription.textContent = config.description;
+            consoleMode.textContent = config.mode;
+            consoleWorker.textContent = config.worker;
+            consoleDelay.textContent = config.delay;
+            consoleExpected.textContent = config.expected;
+            setStatus(config.status, config.statusType);
+
+            if (type === "clean") {
+                makeAction("Keep Monitoring", () => setStatus("Still safe. No worker or CPU loop is active.", "safe"));
+                return;
+            }
+
+            if (type === "instant") {
+                startWorker("Instant miner simulation");
+                makeAction("Stop Miner", stopWorker, true);
+                return;
+            }
+
+            if (type === "delayed") {
+                const startDelayed = () => {
+                    clearTimeout(activeTimer);
+                    activeTimer = null;
+                    startWorker("Delayed miner simulation");
+                };
+
+                activeTimer = setTimeout(startDelayed, 5000);
+                makeAction("Start Now", startDelayed);
+                makeAction("Stop Miner", stopWorker, true);
+                return;
+            }
+
+            if (type === "websocket") {
+                activeTimer = setTimeout(triggerWebSocket, 2000);
+                makeAction("Trigger Now", () => {
+                    clearTimeout(activeTimer);
+                    activeTimer = null;
+                    triggerWebSocket();
+                });
+            }
+        }
+
+        function openTest(type, sourceElement) {
+            const rect = sourceElement.getBoundingClientRect();
+            testPanel.style.setProperty("--card-left", `${rect.left}px`);
+            testPanel.style.setProperty("--card-top", `${rect.top}px`);
+            testPanel.style.setProperty("--card-width", `${rect.width}px`);
+            testPanel.style.setProperty("--card-height", `${rect.height}px`);
+            testOverlay.classList.add("open");
+            testOverlay.setAttribute("aria-hidden", "false");
+            runTest(type);
+        }
+
+        function closeTest() {
+            resetSimulation();
+            testOverlay.classList.remove("open");
+            testOverlay.setAttribute("aria-hidden", "true");
+        }
+
+        function resize() {
+            width = canvas.width = window.innerWidth * window.devicePixelRatio;
+            height = canvas.height = window.innerHeight * window.devicePixelRatio;
+            canvas.style.width = `${window.innerWidth}px`;
+            canvas.style.height = `${window.innerHeight}px`;
+            context.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+        }
+
+        function seed() {
+            nodes.length = 0;
+            streams.length = 0;
+            blocks.length = 0;
+
+            for (let index = 0; index < 38; index += 1) {
+                nodes.push({
+                    x: random(40, window.innerWidth - 40),
+                    y: random(50, window.innerHeight - 50),
+                    radius: random(1.5, 4.5),
+                    speed: random(0.18, 0.55),
+                    phase: random(0, Math.PI * 2)
+                });
+            }
+
+            for (let index = 0; index < 44; index += 1) {
+                streams.push({
+                    x: random(0, window.innerWidth),
+                    y: random(-window.innerHeight, window.innerHeight),
+                    speed: random(0.55, 1.9),
+                    size: random(10, 15),
+                    alpha: random(0.18, 0.55),
+                    text: Array.from({ length: 8 }, () => hashes[Math.floor(Math.random() * hashes.length)]).join("")
+                });
+            }
+
+            for (let index = 0; index < 8; index += 1) {
+                blocks.push({
+                    x: random(0, window.innerWidth),
+                    y: random(0, window.innerHeight),
+                    size: random(42, 78),
+                    speed: random(0.12, 0.36),
+                    rotation: random(0, Math.PI),
+                    alpha: random(0.06, 0.16)
+                });
+            }
+        }
+
+        function drawBlocks() {
+            blocks.forEach((block) => {
+                block.x += block.speed;
+                block.y += Math.sin(time * 0.008 + block.rotation) * 0.18;
+                block.rotation += 0.002;
+
+                if (block.x > window.innerWidth + block.size) {
+                    block.x = -block.size;
+                }
+
+                context.save();
+                context.translate(block.x, block.y);
+                context.rotate(block.rotation);
+                context.strokeStyle = `rgba(56, 189, 248, ${block.alpha})`;
+                context.lineWidth = 1;
+                context.strokeRect(-block.size / 2, -block.size / 2, block.size, block.size);
+                context.strokeRect(-block.size / 2 + 8, -block.size / 2 + 8, block.size - 16, block.size - 16);
+                context.restore();
+            });
+        }
+
+        function drawStreams() {
+            context.font = "12px Consolas, monospace";
+            streams.forEach((stream) => {
+                stream.y += stream.speed;
+
+                if (stream.y > window.innerHeight + 40) {
+                    stream.y = random(-180, -20);
+                    stream.x = random(0, window.innerWidth);
+                    stream.text = Array.from({ length: 8 }, () => hashes[Math.floor(Math.random() * hashes.length)]).join("");
+                }
+
+                context.fillStyle = `rgba(255, 196, 87, ${stream.alpha})`;
+                context.fillText(stream.text, stream.x, stream.y);
+            });
+        }
+
+        function drawNetwork() {
+            nodes.forEach((node) => {
+                node.x += Math.cos(time * 0.006 + node.phase) * node.speed;
+                node.y += Math.sin(time * 0.005 + node.phase) * node.speed;
+
+                if (node.x < 0) node.x = window.innerWidth;
+                if (node.x > window.innerWidth) node.x = 0;
+                if (node.y < 0) node.y = window.innerHeight;
+                if (node.y > window.innerHeight) node.y = 0;
+            });
+
+            for (let a = 0; a < nodes.length; a += 1) {
+                for (let b = a + 1; b < nodes.length; b += 1) {
+                    const first = nodes[a];
+                    const second = nodes[b];
+                    const distance = Math.hypot(first.x - second.x, first.y - second.y);
+
+                    if (distance < 170) {
+                        const alpha = (1 - distance / 170) * 0.22;
+                        context.strokeStyle = `rgba(255, 126, 61, ${alpha})`;
+                        context.lineWidth = 1;
+                        context.beginPath();
+                        context.moveTo(first.x, first.y);
+                        context.lineTo(second.x, second.y);
+                        context.stroke();
+                    }
+                }
+            }
+
+            nodes.forEach((node) => {
+                const glow = context.createRadialGradient(node.x, node.y, 0, node.x, node.y, 18);
+                glow.addColorStop(0, "rgba(255, 145, 77, 0.8)");
+                glow.addColorStop(1, "rgba(255, 145, 77, 0)");
+                context.fillStyle = glow;
+                context.beginPath();
+                context.arc(node.x, node.y, 18, 0, Math.PI * 2);
+                context.fill();
+
+                context.fillStyle = "rgba(255, 222, 173, 0.9)";
+                context.beginPath();
+                context.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+                context.fill();
+            });
+        }
+
+        function drawThreatCore() {
+            const centerX = window.innerWidth * 0.22;
+            const centerY = window.innerHeight * 0.42;
+            const pulse = 1 + Math.sin(time * 0.04) * 0.08;
+            const radius = 88 * pulse;
+
+            const halo = context.createRadialGradient(centerX, centerY, 8, centerX, centerY, radius);
+            halo.addColorStop(0, "rgba(0, 0, 0, 0.92)");
+            halo.addColorStop(0.52, "rgba(0, 0, 0, 0.72)");
+            halo.addColorStop(0.72, "rgba(245, 158, 11, 0.36)");
+            halo.addColorStop(1, "rgba(245, 158, 11, 0)");
+            context.fillStyle = halo;
+            context.beginPath();
+            context.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            context.fill();
+
+            context.strokeStyle = "rgba(255, 173, 85, 0.78)";
+            context.lineWidth = 2;
+            context.beginPath();
+            for (let index = 0; index <= 80; index += 1) {
+                const angle = (index / 80) * Math.PI * 2;
+                const jitter = Math.sin(angle * 9 + time * 0.05) * 9;
+                const x = centerX + Math.cos(angle) * (radius * 0.78 + jitter);
+                const y = centerY + Math.sin(angle) * (radius * 0.78 + jitter);
+                if (index === 0) context.moveTo(x, y);
+                else context.lineTo(x, y);
+            }
+            context.closePath();
+            context.stroke();
+        }
+
+        function frame() {
+            time += 1;
+            context.clearRect(0, 0, window.innerWidth, window.innerHeight);
+            drawBlocks();
+            drawStreams();
+            drawNetwork();
+            drawThreatCore();
+            requestAnimationFrame(frame);
+        }
+
+        window.addEventListener("resize", () => {
+            resize();
+            seed();
+        });
+
+        document.querySelectorAll("[data-test]").forEach((trigger) => {
+            trigger.addEventListener("click", () => {
+                openTest(trigger.dataset.test, trigger);
+            });
+        });
+
+        closeTestButton.addEventListener("click", closeTest);
+        testOverlay.addEventListener("click", (event) => {
+            if (event.target === testOverlay) {
+                closeTest();
+            }
+        });
+
+        window.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && testOverlay.classList.contains("open")) {
+                closeTest();
+            }
+        });
+
+        resize();
+        seed();
+        frame();
+    </script>
+</body>
+</html>

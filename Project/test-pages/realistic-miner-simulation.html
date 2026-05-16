@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>High Realism Delay-CJ Simulation - CryptoShield Test</title>
+    <link rel="stylesheet" href="test-page.css">
+    <style>
+        .media-frame {
+            overflow: hidden;
+            margin: 22px 0 18px;
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-radius: 8px;
+            background: #020617;
+        }
+
+        iframe {
+            display: block;
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            border: 0;
+            background: #020617;
+        }
+
+        .telemetry {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 18px;
+        }
+
+        .metric {
+            min-height: 74px;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .metric span {
+            display: block;
+            color: #b7c3d4;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .metric strong {
+            display: block;
+            margin-top: 6px;
+            color: #ffdb9b;
+            font-size: 22px;
+            line-height: 1;
+        }
+
+        .note {
+            margin-top: 14px;
+            color: #93a4b8;
+            font-size: 13px;
+        }
+
+        @media (max-width: 680px) {
+            .telemetry {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+    </style>
+</head>
+
+<body class="quiet-test">
+    <main class="page">
+        <section class="panel">
+            <a class="close-link" href="index.html" aria-label="Back to home">x</a>
+            <p class="eyebrow">Test 06 Host-Safe High Realism</p>
+            <h1>Video-triggered Delay-CJ simulation</h1>
+            <p>This page stays dormant after the video starts. The delayed trigger launches four workers, continuous
+                hash-like CPU work, periodic SHA-256 digest calls, and localhost-only WebSocket traffic.</p>
+
+            <div class="media-frame">
+                <iframe
+                    id="decoy-video"
+                    src="https://www.youtube.com/embed/Gvkl4tJnbik?enablejsapi=1"
+                    title="YouTube video player"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowfullscreen></iframe>
+            </div>
+
+            <div id="status" class="status safe">Dormant. Press play on the video; the simulation stays quiet past 10 seconds.</div>
+            <button id="start-btn" type="button">Start Simulation</button>
+
+            <div class="telemetry" aria-label="Simulation telemetry">
+                <div class="metric">
+                    <span>Workers</span>
+                    <strong id="worker-count">0</strong>
+                </div>
+                <div class="metric">
+                    <span>Packets</span>
+                    <strong id="packet-count">0</strong>
+                </div>
+                <div class="metric">
+                    <span>Digest Signals</span>
+                    <strong id="digest-count">0</strong>
+                </div>
+                <div class="metric">
+                    <span>Local Socket</span>
+                    <strong id="socket-state">Idle</strong>
+                </div>
+            </div>
+
+            <button id="stop-btn" type="button">Stop Simulation</button>
+            <p class="note">Containment: this page does not connect to public mining pools and does not mine
+                cryptocurrency. WebSocket traffic is attempted only against 127.0.0.1.</p>
+        </section>
+        <footer class="site-footer">CryptoShield | Malware Analysis Project | Designed and Developed by Areeba Adnan</footer>
+    </main>
+
+    <script>
+        const WORKER_COUNT = 4;
+        const DELAYED_START_MS = 12000;
+        const statusBox = document.getElementById("status");
+        const startButton = document.getElementById("start-btn");
+        const stopButton = document.getElementById("stop-btn");
+        const workerCount = document.getElementById("worker-count");
+        const packetCount = document.getElementById("packet-count");
+        const digestCount = document.getElementById("digest-count");
+        const socketState = document.getElementById("socket-state");
+        const workers = [];
+
+        let packets = 0;
+        let digests = 0;
+        let started = false;
+        let delayedStartTimer = null;
+        let player = null;
+        let youtubeReady = false;
+
+        function updateStatus(text, type = "warn") {
+            statusBox.className = `status ${type}`;
+            statusBox.textContent = text;
+        }
+
+        function startSimulation() {
+            if (started) {
+                return;
+            }
+
+            started = true;
+            packets = 0;
+            digests = 0;
+            packetCount.textContent = "0";
+            digestCount.textContent = "0";
+            socketState.textContent = "Local";
+            updateStatus("Video play detected. Delay-CJ trigger armed; staying dormant for 12 seconds.");
+
+            delayedStartTimer = setTimeout(() => {
+                updateStatus("Launching 4 high-load workers with localhost stratum-like traffic.");
+
+                for (let index = 0; index < WORKER_COUNT; index += 1) {
+                    const worker = new Worker(`realistic-miner-worker.js?v=${Date.now()}-${index}`);
+
+                    worker.addEventListener("error", () => {
+                        updateStatus("Worker failed to start. Check that realistic-miner-worker.js is available.", "warn");
+                    });
+
+                    worker.addEventListener("message", (event) => {
+                        if (event.data?.type === "packet") {
+                            packets += 1;
+                            packetCount.textContent = String(packets);
+
+                            if (event.data.digestPreview) {
+                                digests += 1;
+                                digestCount.textContent = String(digests);
+                            }
+
+                            updateStatus(`Simulation active. Workers: ${workers.length}. Packets: ${packets}.`);
+                        }
+
+                        if (event.data?.type === "socket-local-error") {
+                            socketState.textContent = "Signal";
+                        }
+
+                        if (event.data?.type === "socket-open") {
+                            socketState.textContent = "Open";
+                        }
+                    });
+
+                    worker.postMessage({ type: "start", workerIndex: index + 1 });
+                    workers.push(worker);
+                    workerCount.textContent = String(workers.length);
+                }
+            }, DELAYED_START_MS);
+        }
+
+        function stopSimulation() {
+            clearTimeout(delayedStartTimer);
+            delayedStartTimer = null;
+            started = false;
+
+            while (workers.length > 0) {
+                const worker = workers.pop();
+                worker.postMessage({ type: "stop" });
+                worker.terminate();
+            }
+
+            workerCount.textContent = "0";
+            socketState.textContent = "Idle";
+            updateStatus("Simulation stopped. Workers terminated.", "safe");
+        }
+
+        window.onYouTubeIframeAPIReady = function onYouTubeIframeAPIReady() {
+            youtubeReady = true;
+            player = new YT.Player("decoy-video", {
+                events: {
+                    onStateChange(event) {
+                        if (event.data === YT.PlayerState.PLAYING) {
+                            startSimulation();
+                        }
+                    }
+                }
+            });
+        };
+
+        setTimeout(() => {
+            if (!youtubeReady && !started) {
+                updateStatus("YouTube play detection is unavailable. Use Start Simulation to launch Test 06.", "warn");
+            }
+        }, 3000);
+
+        startButton.addEventListener("click", startSimulation);
+        stopButton.addEventListener("click", stopSimulation);
+        window.addEventListener("beforeunload", () => {
+            stopSimulation();
+        });
+    </script>
+    <script src="https://www.youtube.com/iframe_api"></script>
+</body>
+
+</html>

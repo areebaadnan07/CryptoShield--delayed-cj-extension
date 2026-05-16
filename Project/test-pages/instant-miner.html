@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Instant Miner - CryptoShield Test</title>
+    <link rel="stylesheet" href="test-page.css">
+</head>
+
+<body class="quiet-test">
+    <main class="page">
+        <section class="panel">
+            <a class="close-link" href="index.html" aria-label="Back to home">x</a>
+            <p class="eyebrow">Threat Test</p>
+            <h1>Instant miner simulation</h1>
+            <p>This page starts a heavy CPU worker when you click start. It should become a threat quickly.</p>
+            <div id="status" class="status">Ready to start instant miner simulation.</div>
+            <div id="load" class="status">Worker load: 0%</div>
+            <button id="start-btn" type="button">Start Miner</button>
+            <button id="stop-btn" type="button">Stop Miner</button>
+        </section>
+        <footer class="site-footer">CryptoShield | Malware Analysis Project | Designed and Developed by Areeba Adnan</footer>
+    </main>
+
+    <script>
+        const statusBox = document.getElementById("status");
+        const loadBox = document.getElementById("load");
+        const startButton = document.getElementById("start-btn");
+        const stopButton = document.getElementById("stop-btn");
+        let worker = null;
+        let hashTimer = null;
+
+        function startHashTelemetry() {
+            if (hashTimer || !window.crypto?.subtle?.digest) {
+                return;
+            }
+
+            const encoder = new TextEncoder();
+            hashTimer = setInterval(() => {
+                window.crypto.subtle.digest("SHA-256", encoder.encode(`instant-miner-${Date.now()}`));
+            }, 150);
+        }
+
+        function stopHashTelemetry() {
+            clearInterval(hashTimer);
+            hashTimer = null;
+        }
+
+        function startMining() {
+            if (worker) {
+                return;
+            }
+
+            worker = new Worker("miner-simulation-worker.js");
+            statusBox.className = "status warn";
+            statusBox.textContent = "Instant miner simulation started.";
+            loadBox.className = "status warn";
+            loadBox.textContent = "Worker load: starting...";
+            startHashTelemetry();
+
+            worker.addEventListener("message", (event) => {
+                statusBox.textContent = `Instant miner simulation running. Iterations: ${event.data.iterations}`;
+                loadBox.textContent = `Worker load: ${event.data.loadPercent}%`;
+            });
+        }
+
+        startButton.addEventListener("click", startMining);
+
+        stopButton.addEventListener("click", () => {
+            if (worker) {
+                worker.postMessage("stop");
+                worker.terminate();
+                worker = null;
+            }
+
+            stopHashTelemetry();
+            statusBox.className = "status safe";
+            statusBox.textContent = "Instant miner simulation stopped.";
+            loadBox.className = "status safe";
+            loadBox.textContent = "Worker load: 0%";
+        });
+    </script>
+</body>
+
+</html>
